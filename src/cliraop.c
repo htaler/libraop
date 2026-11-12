@@ -348,6 +348,9 @@ int main(int argc, char *argv[]) {
 			if (!n)	continue;
 			raopcl_send_chunk(raopcl, buf, n / 4, &playtime);
 			frames += n / 4;
+		} else {
+			// player does not accept frames yet, don't spin
+			usleep(2000);
 		}
 
 		if (interactive && kbhit()) {
