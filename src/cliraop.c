@@ -337,7 +337,14 @@ int main(int argc, char *argv[]) {
 		}
 
 		if (status == PLAYING && raopcl_accept_frames(raopcl)) {
-			n = read(infile, buf, DEFAULT_FRAMES_PER_CHUNK * 4);
+			int r;
+
+			// a pipe may return less than requested and not a multiple of a frame: keep
+			// reading, otherwise trailing bytes are dropped by n / 4 and samples misalign
+			for (n = 0; n < DEFAULT_FRAMES_PER_CHUNK * 4; n += r) {
+				r = read(infile, buf + n, DEFAULT_FRAMES_PER_CHUNK * 4 - n);
+				if (r <= 0) break;
+			}
 			if (!n)	continue;
 			raopcl_send_chunk(raopcl, buf, n / 4, &playtime);
 			frames += n / 4;
